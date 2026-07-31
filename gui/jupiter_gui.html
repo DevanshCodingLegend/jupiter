@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JUPITER</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;700;900&family=Rajdhani:wght@300;400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: rgba(0, 5, 15, 0.85);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Rajdhani', sans-serif;
+    color: #00d4ff;
+    user-select: none;
+  }
+
+  canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+  }
+
+  .scan-line {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.4), transparent);
+    animation: scan 5s linear infinite;
+    opacity: 0.3;
+    z-index: 1;
+  }
+
+  @keyframes scan {
+    from { top: 0; }
+    to { top: 100vh; }
+  }
+
+  .corner-tl, .corner-tr, .corner-bl, .corner-br {
+    position: fixed;
+    width: 24px; height: 24px;
+    opacity: 0.5;
+    z-index: 2;
+  }
+  .corner-tl { top: 16px; left: 16px; border-top: 1px solid #00d4ff; border-left: 1px solid #00d4ff; }
+  .corner-tr { top: 16px; right: 16px; border-top: 1px solid #00d4ff; border-right: 1px solid #00d4ff; }
+  .corner-bl { bottom: 16px; left: 16px; border-bottom: 1px solid #00d4ff; border-left: 1px solid #00d4ff; }
+  .corner-br { bottom: 16px; right: 16px; border-bottom: 1px solid #00d4ff; border-right: 1px solid #00d4ff; }
+
+  .close-btn {
+    position: fixed;
+    top: 10px; right: 10px;
+    width: 20px; height: 20px;
+    cursor: pointer;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: rgba(0,212,255,0.4);
+    font-family: 'Orbitron', sans-serif;
+    transition: color 0.2s;
+  }
+  .close-btn:hover { color: rgba(255,80,80,0.9); }
+
+  .drag-bar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 30px;
+    cursor: move;
+    z-index: 99;
+    background: transparent;
+  }
+
+  .stats {
+    position: fixed;
+    top: 36px; right: 14px;
+    text-align: right;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 7px;
+    letter-spacing: 1.5px;
+    color: rgba(0,212,255,0.3);
+    line-height: 2;
+    z-index: 2;
+  }
+  .stats span { color: rgba(0,212,255,0.6); }
+
+  .main-layout {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 40px;
+    pointer-events: none;
+  }
+
+  .core {
+    position: relative;
+    width: 160px; height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(0,212,255,0.15);
+    animation: rotate linear infinite;
+  }
+  .ring-1 { width: 160px; height: 160px; border-top-color: rgba(0,212,255,0.8); animation-duration: 8s; }
+  .ring-2 { width: 128px; height: 128px; border-bottom-color: rgba(0,180,255,0.6); animation-duration: 6s; animation-direction: reverse; }
+  .ring-3 { width: 96px; height: 96px; border-top-color: rgba(100,220,255,0.5); animation-duration: 4s; }
+  .ring-4 { width: 64px; height: 64px; border-bottom-color: rgba(0,212,255,0.4); animation-duration: 3s; animation-direction: reverse; }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .orb {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(150,240,255,0.9), rgba(0,180,255,0.6), rgba(0,80,160,0.3));
+    box-shadow: 0 0 16px rgba(0,212,255,0.8), 0 0 32px rgba(0,212,255,0.3);
+    animation: pulse 2s ease-in-out infinite;
+    z-index: 2;
+    transition: all 0.4s ease;
+  }
+  .orb.listening {
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,150,0.9), rgba(255,200,0,0.6), rgba(160,80,0,0.3));
+    box-shadow: 0 0 16px rgba(255,200,0,0.8), 0 0 32px rgba(255,200,0,0.3);
+  }
+  .orb.speaking {
+    background: radial-gradient(circle at 35% 35%, rgba(150,255,180,0.9), rgba(0,255,120,0.6), rgba(0,100,60,0.3));
+    box-shadow: 0 0 16px rgba(0,255,120,0.8), 0 0 32px rgba(0,255,120,0.3);
+  }
+  .orb.thinking {
+    background: radial-gradient(circle at 35% 35%, rgba(200,150,255,0.9), rgba(150,0,255,0.6), rgba(60,0,120,0.3));
+    box-shadow: 0 0 16px rgba(150,0,255,0.8), 0 0 32px rgba(150,0,255,0.3);
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  .name {
+    margin-top: 12px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 10px;
+    color: rgba(0,212,255,0.9);
+    text-shadow: 0 0 16px rgba(0,212,255,0.5);
+  }
+
+  .status {
+    margin-top: 6px;
+    font-size: 8px;
+    letter-spacing: 3px;
+    color: rgba(0,212,255,0.4);
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  .waveform {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: 20px;
+    margin-top: 10px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .waveform.active { opacity: 1; }
+  .wave-bar {
+    width: 2px;
+    background: rgba(0,212,255,0.6);
+    border-radius: 2px;
+    animation: wave 1s ease-in-out infinite;
+  }
+  .wave-bar:nth-child(1) { animation-delay: 0s; }
+  .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+  .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+  .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+  .wave-bar:nth-child(6) { animation-delay: 0.3s; }
+  .wave-bar:nth-child(7) { animation-delay: 0.2s; }
+  .wave-bar:nth-child(8) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(9) { animation-delay: 0s; }
+
+  @keyframes wave {
+    0%, 100% { height: 3px; }
+    50% { height: 16px; }
+  }
+
+  .chat-area {
+    width: 90%;
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .msg-box {
+    width: 100%;
+    background: rgba(0,10,30,0.6);
+    border-radius: 8px;
+    padding: 10px 14px;
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    border: 1px solid rgba(0,212,255,0.1);
+  }
+  .msg-box.visible { opacity: 1; }
+
+  .msg-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 7px;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+  .msg-label.user-label { color: rgba(0,255,120,0.5); }
+  .msg-label.jupiter-label { color: rgba(0,212,255,0.4); }
+
+  .msg-text {
+    font-size: 12px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+  .msg-text.user-text { color: rgba(200,255,220,0.9); }
+  .msg-text.jupiter-text { color: rgba(200,240,255,0.9); }
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div class="scan-line"></div>
+
+<div class="drag-bar" id="dragBar"></div>
+<div class="close-btn" id="closeBtn" title="Close">✕</div>
+
+<div class="corner-tl"></div>
+<div class="corner-tr"></div>
+<div class="corner-bl"></div>
+<div class="corner-br"></div>
+
+<div class="stats">
+  MEMORY <span id="memCount">0</span><br>
+  <span id="currentTime">--:--:--</span>
+</div>
+
+<div class="main-layout">
+  <div class="core">
+    <div class="ring ring-1"></div>
+    <div class="ring ring-2"></div>
+    <div class="ring ring-3"></div>
+    <div class="ring ring-4"></div>
+    <div class="orb" id="orb"></div>
+  </div>
+
+  <div class="name">JUPITER</div>
+  <div class="status" id="statusText">STANDING BY</div>
+
+  <div class="waveform" id="waveform">
+    <div class="wave-bar" style="height:4px"></div>
+    <div class="wave-bar" style="height:8px"></div>
+    <div class="wave-bar" style="height:14px"></div>
+    <div class="wave-bar" style="height:10px"></div>
+    <div class="wave-bar" style="height:16px"></div>
+    <div class="wave-bar" style="height:10px"></div>
+    <div class="wave-bar" style="height:14px"></div>
+    <div class="wave-bar" style="height:8px"></div>
+    <div class="wave-bar" style="height:4px"></div>
+  </div>
+
+  <div class="chat-area">
+    <div class="msg-box" id="userBox">
+      <div class="msg-label user-label">Devansh</div>
+      <div class="msg-text user-text" id="userText"></div>
+    </div>
+    <div class="msg-box" id="responseBox">
+      <div class="msg-label jupiter-label">Jupiter</div>
+      <div class="msg-text jupiter-text" id="responseText"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Canvas background
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = Array.from({length: 50}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.2,
+    vy: (Math.random() - 0.5) * 0.2,
+    size: Math.random() * 1.2 + 0.3,
+    opacity: Math.random() * 0.3 + 0.05
+  }));
+
+  function drawGrid() {
+    ctx.strokeStyle = 'rgba(0,212,255,0.025)';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x < canvas.width; x += 50) {
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += 50) {
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = canvas.width;
+      if (p.x > canvas.width) p.x = 0;
+      if (p.y < 0) p.y = canvas.height;
+      if (p.y > canvas.height) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(0,212,255,${p.opacity})`;
+      ctx.fill();
+    });
+    particles.forEach((p1,i) => {
+      particles.slice(i+1).forEach(p2 => {
+        const d = Math.hypot(p1.x-p2.x, p1.y-p2.y);
+        if (d < 80) {
+          ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y);
+          ctx.strokeStyle = `rgba(0,212,255,${0.06*(1-d/80)})`;
+          ctx.lineWidth = 0.5; ctx.stroke();
+        }
+      });
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  // Clock
+  setInterval(() => {
+    document.getElementById('currentTime').textContent = new Date().toTimeString().slice(0,8);
+  }, 1000);
+
+  // Elements
+  const orb = document.getElementById('orb');
+  const statusText = document.getElementById('statusText');
+  const waveform = document.getElementById('waveform');
+  const responseBox = document.getElementById('responseBox');
+  const responseText = document.getElementById('responseText');
+  const userBox = document.getElementById('userBox');
+  const userText = document.getElementById('userText');
+
+  let hideTimeout = null;
+
+  function setStatus(state, text) {
+    orb.className = 'orb' + (state ? ' '+state : '');
+    statusText.textContent = text || 'STANDING BY';
+    waveform.className = 'waveform' + (state === 'listening' || state === 'speaking' ? ' active' : '');
+  }
+
+  function showUser(text) {
+    userText.textContent = text;
+    userBox.classList.add('visible');
+  }
+
+  function showResponse(text) {
+    responseText.textContent = text;
+    responseBox.classList.add('visible');
+    if (hideTimeout) clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      responseBox.classList.remove('visible');
+      userBox.classList.remove('visible');
+      setStatus('', 'STANDING BY');
+    }, 8000);
+  }
+
+  // Bridge
+  window.jupiterSetListening = () => setStatus('listening', 'LISTENING');
+  window.jupiterSetThinking = () => setStatus('thinking', 'PROCESSING');
+  window.jupiterSetSpeaking = () => setStatus('speaking', 'SPEAKING');
+  window.jupiterSetIdle = () => setStatus('', 'STANDING BY');
+  window.jupiterShowUser = (text) => showUser(text);
+  window.jupiterShowResponse = (text) => showResponse(text);
+  window.jupiterSetMemory = (count) => document.getElementById('memCount').textContent = count;
+
+  // Close button — signals Python
+  document.getElementById('closeBtn').addEventListener('click', () => {
+    window.location.href = 'jupiter://close';
+  });
+</script>
+</body>
+</html>
