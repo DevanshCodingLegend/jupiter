@@ -1,411 +1,741 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>JUPITER</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;700;900&family=Rajdhani:wght@300;400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;700;900&family=Rajdhani:wght@300;400;500;600&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: rgba(0, 5, 15, 0.85);
+    background: rgba(0, 3, 12, 0.92);
     width: 100vw;
     height: 100vh;
     overflow: hidden;
     font-family: 'Rajdhani', sans-serif;
     color: #00d4ff;
     user-select: none;
+    -webkit-app-region: drag;
   }
 
-  canvas {
+  canvas#bg {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
     z-index: 0;
   }
 
-  .scan-line {
+  .scan {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.4), transparent);
-    animation: scan 5s linear infinite;
-    opacity: 0.3;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(0,212,255,0.6) 50%, transparent 100%);
+    animation: scanline 8s linear infinite;
     z-index: 1;
   }
+  @keyframes scanline { from { top: 0; } to { top: 100vh; } }
 
-  @keyframes scan {
-    from { top: 0; }
-    to { top: 100vh; }
-  }
+  /* Corner brackets */
+  .c { position: fixed; width: 28px; height: 28px; z-index: 5; opacity: 0.5; }
+  .c-tl { top: 12px; left: 12px; border-top: 1px solid #00d4ff; border-left: 1px solid #00d4ff; }
+  .c-tr { top: 12px; right: 12px; border-top: 1px solid #00d4ff; border-right: 1px solid #00d4ff; }
+  .c-bl { bottom: 12px; left: 12px; border-bottom: 1px solid #00d4ff; border-left: 1px solid #00d4ff; }
+  .c-br { bottom: 12px; right: 12px; border-bottom: 1px solid #00d4ff; border-right: 1px solid #00d4ff; }
 
-  .corner-tl, .corner-tr, .corner-bl, .corner-br {
+  /* Top bar */
+  .topbar {
     position: fixed;
-    width: 24px; height: 24px;
-    opacity: 0.5;
-    z-index: 2;
-  }
-  .corner-tl { top: 16px; left: 16px; border-top: 1px solid #00d4ff; border-left: 1px solid #00d4ff; }
-  .corner-tr { top: 16px; right: 16px; border-top: 1px solid #00d4ff; border-right: 1px solid #00d4ff; }
-  .corner-bl { bottom: 16px; left: 16px; border-bottom: 1px solid #00d4ff; border-left: 1px solid #00d4ff; }
-  .corner-br { bottom: 16px; right: 16px; border-bottom: 1px solid #00d4ff; border-right: 1px solid #00d4ff; }
-
-  .close-btn {
-    position: fixed;
-    top: 10px; right: 10px;
-    width: 20px; height: 20px;
-    cursor: pointer;
-    z-index: 100;
+    top: 0; left: 0; right: 0;
+    height: 44px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    color: rgba(0,212,255,0.4);
-    font-family: 'Orbitron', sans-serif;
-    transition: color 0.2s;
-  }
-  .close-btn:hover { color: rgba(255,80,80,0.9); }
-
-  .drag-bar {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 30px;
-    cursor: move;
-    z-index: 99;
-    background: transparent;
-  }
-
-  .stats {
-    position: fixed;
-    top: 36px; right: 14px;
-    text-align: right;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 7px;
-    letter-spacing: 1.5px;
-    color: rgba(0,212,255,0.3);
-    line-height: 2;
-    z-index: 2;
-  }
-  .stats span { color: rgba(0,212,255,0.6); }
-
-  .main-layout {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid rgba(0,212,255,0.08);
     z-index: 10;
+    background: rgba(0,3,12,0.4);
+  }
+
+  .topbar-left {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 8px;
+    letter-spacing: 3px;
+    color: rgba(0,212,255,0.4);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .topbar-center {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 8px;
+    color: rgba(0,212,255,0.7);
+    text-shadow: 0 0 20px rgba(0,212,255,0.3);
+  }
+
+  .topbar-right {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: rgba(0,212,255,0.4);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .close-x {
+    cursor: pointer;
+    color: rgba(0,212,255,0.3);
+    font-size: 14px;
+    transition: color 0.2s;
+    -webkit-app-region: no-drag;
+    padding: 4px 8px;
+  }
+  .close-x:hover { color: rgba(255,80,80,0.9); }
+
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(0,255,120,0.7); animation: blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* Main layout */
+  .layout {
+    position: fixed;
+    top: 44px; left: 0; right: 0; bottom: 0;
+    display: grid;
+    grid-template-columns: 260px 1fr 260px;
+    grid-template-rows: 1fr auto;
+    z-index: 5;
+    padding: 20px;
+    gap: 16px;
+  }
+
+  /* Left panel */
+  .panel-left {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Center */
+  .panel-center {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding-top: 40px;
-    pointer-events: none;
+    justify-content: center;
+    position: relative;
   }
 
-  .core {
+  /* Right panel */
+  .panel-right {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Bottom */
+  .panel-bottom {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Cards */
+  .card {
+    background: rgba(0,8,25,0.5);
+    border: 1px solid rgba(0,212,255,0.08);
+    border-radius: 8px;
+    padding: 12px 14px;
+    backdrop-filter: blur(10px);
+  }
+
+  .card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 7px;
+    letter-spacing: 2px;
+    color: rgba(0,212,255,0.35);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .card-value {
+    font-size: 13px;
+    color: rgba(200,240,255,0.8);
+    line-height: 1.5;
+  }
+
+  /* Awareness pills */
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .pill {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 7px;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border: 1px solid rgba(0,212,255,0.12);
+    border-radius: 20px;
+    color: rgba(0,212,255,0.35);
+    transition: all 0.4s;
+  }
+
+  .pill.on {
+    border-color: rgba(0,212,255,0.5);
+    color: rgba(0,212,255,0.9);
+    background: rgba(0,212,255,0.07);
+    box-shadow: 0 0 8px rgba(0,212,255,0.15);
+  }
+
+  .pill.mood-happy { border-color: rgba(255,200,0,0.5); color: rgba(255,200,0,0.9); background: rgba(255,200,0,0.07); }
+  .pill.mood-tired { border-color: rgba(100,100,255,0.5); color: rgba(150,150,255,0.9); background: rgba(100,100,255,0.07); }
+  .pill.mood-focused { border-color: rgba(0,255,120,0.5); color: rgba(0,255,120,0.9); background: rgba(0,255,120,0.07); }
+
+  /* Core orb */
+  .core-wrap {
     position: relative;
-    width: 160px; height: 160px;
+    width: min(340px, 40vw);
+    height: min(340px, 40vw);
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
   }
 
   .ring {
     position: absolute;
     border-radius: 50%;
-    border: 1px solid rgba(0,212,255,0.15);
-    animation: rotate linear infinite;
+    border: 1px solid transparent;
   }
-  .ring-1 { width: 160px; height: 160px; border-top-color: rgba(0,212,255,0.8); animation-duration: 8s; }
-  .ring-2 { width: 128px; height: 128px; border-bottom-color: rgba(0,180,255,0.6); animation-duration: 6s; animation-direction: reverse; }
-  .ring-3 { width: 96px; height: 96px; border-top-color: rgba(100,220,255,0.5); animation-duration: 4s; }
-  .ring-4 { width: 64px; height: 64px; border-bottom-color: rgba(0,212,255,0.4); animation-duration: 3s; animation-direction: reverse; }
 
-  @keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
+  .r1 { width: 100%; height: 100%; border-top-color: rgba(0,212,255,0.6); border-right-color: rgba(0,212,255,0.1); animation: spin 12s linear infinite; }
+  .r2 { width: 82%; height: 82%; border-bottom-color: rgba(0,180,255,0.5); border-left-color: rgba(0,180,255,0.08); animation: spin 8s linear infinite reverse; }
+  .r3 { width: 65%; height: 65%; border-top-color: rgba(100,220,255,0.4); animation: spin 5s linear infinite; }
+  .r4 { width: 48%; height: 48%; border-bottom-color: rgba(0,212,255,0.3); animation: spin 3s linear infinite reverse; }
+  .r5 { width: 32%; height: 32%; border-top-color: rgba(0,212,255,0.2); animation: spin 2s linear infinite; }
+
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
   .orb {
-    width: 40px; height: 40px;
+    width: 18%;
+    height: 18%;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, rgba(150,240,255,0.9), rgba(0,180,255,0.6), rgba(0,80,160,0.3));
-    box-shadow: 0 0 16px rgba(0,212,255,0.8), 0 0 32px rgba(0,212,255,0.3);
-    animation: pulse 2s ease-in-out infinite;
+    background: radial-gradient(circle at 35% 35%, rgba(150,240,255,0.95), rgba(0,180,255,0.7), rgba(0,60,140,0.4));
+    box-shadow: 0 0 30px rgba(0,212,255,0.9), 0 0 60px rgba(0,212,255,0.4), 0 0 120px rgba(0,212,255,0.15);
+    animation: pulse 2.5s ease-in-out infinite;
+    transition: all 0.5s ease;
     z-index: 2;
-    transition: all 0.4s ease;
   }
+
   .orb.listening {
-    background: radial-gradient(circle at 35% 35%, rgba(255,255,150,0.9), rgba(255,200,0,0.6), rgba(160,80,0,0.3));
-    box-shadow: 0 0 16px rgba(255,200,0,0.8), 0 0 32px rgba(255,200,0,0.3);
+    background: radial-gradient(circle at 35% 35%, rgba(255,240,100,0.95), rgba(255,180,0,0.7), rgba(120,50,0,0.4));
+    box-shadow: 0 0 30px rgba(255,200,0,0.9), 0 0 60px rgba(255,200,0,0.4), 0 0 120px rgba(255,200,0,0.1);
   }
-  .orb.speaking {
-    background: radial-gradient(circle at 35% 35%, rgba(150,255,180,0.9), rgba(0,255,120,0.6), rgba(0,100,60,0.3));
-    box-shadow: 0 0 16px rgba(0,255,120,0.8), 0 0 32px rgba(0,255,120,0.3);
-  }
+
   .orb.thinking {
-    background: radial-gradient(circle at 35% 35%, rgba(200,150,255,0.9), rgba(150,0,255,0.6), rgba(60,0,120,0.3));
-    box-shadow: 0 0 16px rgba(150,0,255,0.8), 0 0 32px rgba(150,0,255,0.3);
+    background: radial-gradient(circle at 35% 35%, rgba(200,150,255,0.95), rgba(150,0,255,0.7), rgba(50,0,120,0.4));
+    box-shadow: 0 0 30px rgba(160,0,255,0.9), 0 0 60px rgba(160,0,255,0.4);
+    animation: think 0.8s ease-in-out infinite;
   }
 
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+  .orb.speaking {
+    background: radial-gradient(circle at 35% 35%, rgba(150,255,180,0.95), rgba(0,255,120,0.7), rgba(0,80,40,0.4));
+    box-shadow: 0 0 30px rgba(0,255,120,0.9), 0 0 60px rgba(0,255,120,0.4), 0 0 120px rgba(0,255,120,0.1);
   }
 
-  .name {
-    margin-top: 12px;
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+  @keyframes think { 0%,100% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; } }
+
+  .status-label {
+    position: absolute;
+    bottom: -30px;
     font-family: 'Orbitron', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 10px;
-    color: rgba(0,212,255,0.9);
-    text-shadow: 0 0 16px rgba(0,212,255,0.5);
+    font-size: 9px;
+    letter-spacing: 5px;
+    color: rgba(0,212,255,0.5);
+    text-align: center;
+    transition: all 0.3s;
   }
 
-  .status {
-    margin-top: 6px;
-    font-size: 8px;
-    letter-spacing: 3px;
-    color: rgba(0,212,255,0.4);
-    font-family: 'Orbitron', sans-serif;
-  }
-
-  .waveform {
+  /* Waveform */
+  .wave {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 2px;
-    height: 20px;
-    margin-top: 10px;
+    gap: 3px;
+    height: 32px;
+    margin-top: 50px;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.4s;
   }
-  .waveform.active { opacity: 1; }
-  .wave-bar {
-    width: 2px;
-    background: rgba(0,212,255,0.6);
+  .wave.on { opacity: 1; }
+  .wbar {
+    width: 3px;
     border-radius: 2px;
-    animation: wave 1s ease-in-out infinite;
+    background: rgba(0,212,255,0.5);
+    animation: wv 1s ease-in-out infinite;
   }
-  .wave-bar:nth-child(1) { animation-delay: 0s; }
-  .wave-bar:nth-child(2) { animation-delay: 0.1s; }
-  .wave-bar:nth-child(3) { animation-delay: 0.2s; }
-  .wave-bar:nth-child(4) { animation-delay: 0.3s; }
-  .wave-bar:nth-child(5) { animation-delay: 0.4s; }
-  .wave-bar:nth-child(6) { animation-delay: 0.3s; }
-  .wave-bar:nth-child(7) { animation-delay: 0.2s; }
-  .wave-bar:nth-child(8) { animation-delay: 0.1s; }
-  .wave-bar:nth-child(9) { animation-delay: 0s; }
+  .wave.speaking .wbar { background: rgba(0,255,120,0.6); }
+  .wave.listening .wbar { background: rgba(255,200,0,0.6); }
+  .wbar:nth-child(1){animation-delay:0s}
+  .wbar:nth-child(2){animation-delay:.07s}
+  .wbar:nth-child(3){animation-delay:.14s}
+  .wbar:nth-child(4){animation-delay:.21s}
+  .wbar:nth-child(5){animation-delay:.28s}
+  .wbar:nth-child(6){animation-delay:.35s}
+  .wbar:nth-child(7){animation-delay:.28s}
+  .wbar:nth-child(8){animation-delay:.21s}
+  .wbar:nth-child(9){animation-delay:.14s}
+  .wbar:nth-child(10){animation-delay:.07s}
+  .wbar:nth-child(11){animation-delay:0s}
+  @keyframes wv { 0%,100%{height:3px} 50%{height:24px} }
 
-  @keyframes wave {
-    0%, 100% { height: 3px; }
-    50% { height: 16px; }
-  }
-
-  .chat-area {
-    width: 90%;
-    margin-top: 14px;
+  /* Chat messages */
+  .chat-wrap {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    flex: 1;
+  }
+
+  .msg {
+    width: 100%;
+    background: rgba(0,8,25,0.6);
+    border-radius: 8px;
+    padding: 10px 16px;
+    border: 1px solid rgba(0,212,255,0.07);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: all 0.4s ease;
+    max-height: 0;
     overflow: hidden;
   }
 
-  .msg-box {
-    width: 100%;
-    background: rgba(0,10,30,0.6);
-    border-radius: 8px;
-    padding: 10px 14px;
-    backdrop-filter: blur(8px);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    border: 1px solid rgba(0,212,255,0.1);
+  .msg.show {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 120px;
   }
-  .msg-box.visible { opacity: 1; }
 
-  .msg-label {
+  .msg-who {
     font-family: 'Orbitron', sans-serif;
     font-size: 7px;
     letter-spacing: 2px;
     margin-bottom: 5px;
-    text-transform: uppercase;
   }
-  .msg-label.user-label { color: rgba(0,255,120,0.5); }
-  .msg-label.jupiter-label { color: rgba(0,212,255,0.4); }
 
-  .msg-text {
-    font-size: 12px;
-    line-height: 1.6;
-    font-weight: 300;
+  .msg-who.you { color: rgba(0,255,120,0.5); }
+  .msg-who.jup { color: rgba(0,212,255,0.4); }
+
+  .msg-body {
+    font-size: 13px;
+    line-height: 1.55;
+    font-weight: 400;
   }
-  .msg-text.user-text { color: rgba(200,255,220,0.9); }
-  .msg-text.jupiter-text { color: rgba(200,240,255,0.9); }
+
+  .msg-body.you-body { color: rgba(200,255,220,0.9); }
+  .msg-body.jup-body { color: rgba(200,240,255,0.9); }
+
+  /* Metrics bar */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .metric {
+    background: rgba(0,8,25,0.5);
+    border: 1px solid rgba(0,212,255,0.07);
+    border-radius: 6px;
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  .metric-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 6px;
+    letter-spacing: 1.5px;
+    color: rgba(0,212,255,0.3);
+    margin-bottom: 4px;
+  }
+
+  .metric-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    color: rgba(0,212,255,0.7);
+    font-weight: 700;
+  }
+
+  /* History log */
+  .log {
+    max-height: 80px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .log::-webkit-scrollbar { display: none; }
+
+  .log-item {
+    font-size: 11px;
+    color: rgba(0,212,255,0.3);
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(0,212,255,0.04);
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 0.5px;
+  }
+
+  /* Gesture flash */
+  .gesture-flash {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: rgba(0,212,255,0.8);
+    background: rgba(0,8,25,0.8);
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 10px 24px;
+    border-radius: 40px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 100;
+    text-align: center;
+  }
+  .gesture-flash.show { opacity: 1; }
 </style>
 </head>
 <body>
 
-<canvas id="bgCanvas"></canvas>
-<div class="scan-line"></div>
+<canvas id="bg"></canvas>
+<div class="scan"></div>
 
-<div class="drag-bar" id="dragBar"></div>
-<div class="close-btn" id="closeBtn" title="Close">✕</div>
+<div class="c c-tl"></div>
+<div class="c c-tr"></div>
+<div class="c c-bl"></div>
+<div class="c c-br"></div>
 
-<div class="corner-tl"></div>
-<div class="corner-tr"></div>
-<div class="corner-bl"></div>
-<div class="corner-br"></div>
-
-<div class="stats">
-  MEMORY <span id="memCount">0</span><br>
-  <span id="currentTime">--:--:--</span>
-</div>
-
-<div class="main-layout">
-  <div class="core">
-    <div class="ring ring-1"></div>
-    <div class="ring ring-2"></div>
-    <div class="ring ring-3"></div>
-    <div class="ring ring-4"></div>
-    <div class="orb" id="orb"></div>
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="dot"></div>
+    <span>JUPITER / ACTIVE</span>
+    <span id="clock">--:--:--</span>
   </div>
-
-  <div class="name">JUPITER</div>
-  <div class="status" id="statusText">STANDING BY</div>
-
-  <div class="waveform" id="waveform">
-    <div class="wave-bar" style="height:4px"></div>
-    <div class="wave-bar" style="height:8px"></div>
-    <div class="wave-bar" style="height:14px"></div>
-    <div class="wave-bar" style="height:10px"></div>
-    <div class="wave-bar" style="height:16px"></div>
-    <div class="wave-bar" style="height:10px"></div>
-    <div class="wave-bar" style="height:14px"></div>
-    <div class="wave-bar" style="height:8px"></div>
-    <div class="wave-bar" style="height:4px"></div>
-  </div>
-
-  <div class="chat-area">
-    <div class="msg-box" id="userBox">
-      <div class="msg-label user-label">Devansh</div>
-      <div class="msg-text user-text" id="userText"></div>
-    </div>
-    <div class="msg-box" id="responseBox">
-      <div class="msg-label jupiter-label">Jupiter</div>
-      <div class="msg-text jupiter-text" id="responseText"></div>
-    </div>
+  <div class="topbar-center">J U P I T E R</div>
+  <div class="topbar-right">
+    <span>MEM <span id="memCount">0</span></span>
+    <span id="statusBadge">STANDING BY</span>
+    <span class="close-x" onclick="window.jupiterBridge && window.jupiterBridge.hide()">✕</span>
   </div>
 </div>
+
+<!-- Main layout -->
+<div class="layout">
+
+  <!-- Left panel -->
+  <div class="panel-left">
+
+    <div class="card">
+      <div class="card-title">Awareness</div>
+      <div class="pills">
+        <div class="pill" id="pillFace">FACE</div>
+        <div class="pill" id="pillMood">NEUTRAL</div>
+        <div class="pill" id="pillAttention">ATTENTION</div>
+        <div class="pill" id="pillGesture">GESTURE</div>
+        <div class="pill" id="pillScreen">SCREEN</div>
+        <div class="pill" id="pillListen">LISTENING</div>
+      </div>
+    </div>
+
+    <div class="card" style="flex:1">
+      <div class="card-title">System</div>
+      <div class="metrics" style="grid-template-columns:1fr 1fr; margin-bottom:8px">
+        <div class="metric">
+          <div class="metric-label">CPU</div>
+          <div class="metric-val" id="cpu">--%</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">RAM</div>
+          <div class="metric-val" id="ram">--GB</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">BATTERY</div>
+          <div class="metric-val" id="battery">--%</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">MEMORY</div>
+          <div class="metric-val" id="memVal">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="flex:1">
+      <div class="card-title">Active Window</div>
+      <div class="card-value" id="activeWindow" style="font-size:11px; color:rgba(0,212,255,0.5)">—</div>
+    </div>
+
+  </div>
+
+  <!-- Center -->
+  <div class="panel-center">
+
+    <div class="core-wrap">
+      <div class="ring r1"></div>
+      <div class="ring r2"></div>
+      <div class="ring r3"></div>
+      <div class="ring r4"></div>
+      <div class="ring r5"></div>
+      <div class="orb" id="orb"></div>
+      <div class="status-label" id="statusLabel">STANDING BY</div>
+    </div>
+
+    <div class="wave" id="wave">
+      <div class="wbar" style="height:3px"></div>
+      <div class="wbar" style="height:7px"></div>
+      <div class="wbar" style="height:13px"></div>
+      <div class="wbar" style="height:9px"></div>
+      <div class="wbar" style="height:20px"></div>
+      <div class="wbar" style="height:24px"></div>
+      <div class="wbar" style="height:20px"></div>
+      <div class="wbar" style="height:9px"></div>
+      <div class="wbar" style="height:13px"></div>
+      <div class="wbar" style="height:7px"></div>
+      <div class="wbar" style="height:3px"></div>
+    </div>
+
+  </div>
+
+  <!-- Right panel -->
+  <div class="panel-right">
+
+    <div class="card" style="flex:2">
+      <div class="card-title">Screen Vision</div>
+      <div class="card-value" id="screenVision" style="font-size:11px; color:rgba(0,212,255,0.5); line-height:1.6">Initializing...</div>
+    </div>
+
+    <div class="card" style="flex:1">
+      <div class="card-title">Last Intent</div>
+      <div class="card-value" id="lastIntent" style="font-size:11px; color:rgba(0,212,255,0.5)">—</div>
+    </div>
+
+    <div class="card" style="flex:2">
+      <div class="card-title">Recent Activity</div>
+      <div class="log" id="activityLog"></div>
+    </div>
+
+  </div>
+
+  <!-- Bottom chat -->
+  <div class="panel-bottom">
+    <div class="chat-wrap">
+      <div class="msg" id="userMsg">
+        <div class="msg-who you">DEVANSH</div>
+        <div class="msg-body you-body" id="userText"></div>
+      </div>
+      <div class="msg" id="jupMsg">
+        <div class="msg-who jup">JUPITER</div>
+        <div class="msg-body jup-body" id="jupText"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="gesture-flash" id="gestureFl"></div>
 
 <script>
-  // Canvas background
-  const canvas = document.getElementById('bgCanvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  // Background canvas
+  const canvas = document.getElementById('bg')
+  const ctx = canvas.getContext('2d')
 
-  const particles = Array.from({length: 50}, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    vx: (Math.random() - 0.5) * 0.2,
-    vy: (Math.random() - 0.5) * 0.2,
-    size: Math.random() * 1.2 + 0.3,
-    opacity: Math.random() * 0.3 + 0.05
-  }));
-
-  function drawGrid() {
-    ctx.strokeStyle = 'rgba(0,212,255,0.025)';
-    ctx.lineWidth = 0.5;
-    for (let x = 0; x < canvas.width; x += 50) {
-      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
-    }
-    for (let y = 0; y < canvas.height; y += 50) {
-      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
-    }
+  function resize() {
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
   }
+  resize()
+  window.addEventListener('resize', resize)
 
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGrid();
-    particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < 0) p.x = canvas.width;
-      if (p.x > canvas.width) p.x = 0;
-      if (p.y < 0) p.y = canvas.height;
-      if (p.y > canvas.height) p.y = 0;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(0,212,255,${p.opacity})`;
-      ctx.fill();
-    });
-    particles.forEach((p1,i) => {
-      particles.slice(i+1).forEach(p2 => {
-        const d = Math.hypot(p1.x-p2.x, p1.y-p2.y);
-        if (d < 80) {
-          ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y);
-          ctx.strokeStyle = `rgba(0,212,255,${0.06*(1-d/80)})`;
-          ctx.lineWidth = 0.5; ctx.stroke();
-        }
-      });
-    });
-    requestAnimationFrame(animate);
+  const pts = Array.from({length: 60}, () => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    vx: (Math.random()-.5)*.15,
+    vy: (Math.random()-.5)*.15,
+    s: Math.random()*1.2+.3,
+    o: Math.random()*.2+.04
+  }))
+
+  function drawBg() {
+    ctx.clearRect(0,0,canvas.width,canvas.height)
+    
+    // Grid
+    ctx.strokeStyle = 'rgba(0,212,255,0.02)'
+    ctx.lineWidth = .5
+    const gs = 60
+    for(let x=0;x<canvas.width;x+=gs){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke()}
+    for(let y=0;y<canvas.height;y+=gs){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke()}
+
+    // Particles
+    pts.forEach(p => {
+      p.x+=p.vx; p.y+=p.vy
+      if(p.x<0)p.x=canvas.width
+      if(p.x>canvas.width)p.x=0
+      if(p.y<0)p.y=canvas.height
+      if(p.y>canvas.height)p.y=0
+      ctx.beginPath();ctx.arc(p.x,p.y,p.s,0,Math.PI*2)
+      ctx.fillStyle=`rgba(0,212,255,${p.o})`;ctx.fill()
+    })
+
+    // Connections
+    pts.forEach((a,i)=>pts.slice(i+1).forEach(b=>{
+      const d=Math.hypot(a.x-b.x,a.y-b.y)
+      if(d<90){
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y)
+        ctx.strokeStyle=`rgba(0,212,255,${.05*(1-d/90)})`;ctx.lineWidth=.4;ctx.stroke()
+      }
+    }))
+
+    requestAnimationFrame(drawBg)
   }
-  animate();
+  drawBg()
 
   // Clock
-  setInterval(() => {
-    document.getElementById('currentTime').textContent = new Date().toTimeString().slice(0,8);
-  }, 1000);
+  setInterval(()=>{
+    document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8)
+  },1000)
 
   // Elements
-  const orb = document.getElementById('orb');
-  const statusText = document.getElementById('statusText');
-  const waveform = document.getElementById('waveform');
-  const responseBox = document.getElementById('responseBox');
-  const responseText = document.getElementById('responseText');
-  const userBox = document.getElementById('userBox');
-  const userText = document.getElementById('userText');
+  const orb = document.getElementById('orb')
+  const statusLabel = document.getElementById('statusLabel')
+  const statusBadge = document.getElementById('statusBadge')
+  const wave = document.getElementById('wave')
+  const userMsg = document.getElementById('userMsg')
+  const userText = document.getElementById('userText')
+  const jupMsg = document.getElementById('jupMsg')
+  const jupText = document.getElementById('jupText')
+  const gestureFl = document.getElementById('gestureFl')
 
-  let hideTimeout = null;
+  let hideChat = null
+  const actLog = []
 
-  function setStatus(state, text) {
-    orb.className = 'orb' + (state ? ' '+state : '');
-    statusText.textContent = text || 'STANDING BY';
-    waveform.className = 'waveform' + (state === 'listening' || state === 'speaking' ? ' active' : '');
+  function addActivity(text) {
+    actLog.unshift(text)
+    if(actLog.length > 8) actLog.pop()
+    const el = document.getElementById('activityLog')
+    el.innerHTML = actLog.map(a=>`<div class="log-item">${a}</div>`).join('')
   }
 
-  function showUser(text) {
-    userText.textContent = text;
-    userBox.classList.add('visible');
-  }
+  function setState(s) {
+    // Orb state
+    if(s.listening) {
+      orb.className='orb listening'
+      statusLabel.textContent='LISTENING'
+      statusBadge.textContent='LISTENING'
+      wave.className='wave on listening'
+      document.getElementById('pillListen').classList.add('on')
+    } else if(s.thinking) {
+      orb.className='orb thinking'
+      statusLabel.textContent='PROCESSING'
+      statusBadge.textContent='PROCESSING'
+      wave.className='wave'
+      document.getElementById('pillListen').classList.remove('on')
+    } else if(s.jupiter_speaking) {
+      orb.className='orb speaking'
+      statusLabel.textContent='SPEAKING'
+      statusBadge.textContent='SPEAKING'
+      wave.className='wave on speaking'
+    } else {
+      orb.className='orb'
+      statusLabel.textContent='STANDING BY'
+      statusBadge.textContent='STANDING BY'
+      wave.className='wave'
+      document.getElementById('pillListen').classList.remove('on')
+    }
 
-  function showResponse(text) {
-    responseText.textContent = text;
-    responseBox.classList.add('visible');
-    if (hideTimeout) clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(() => {
-      responseBox.classList.remove('visible');
-      userBox.classList.remove('visible');
-      setStatus('', 'STANDING BY');
-    }, 8000);
+    // Chat
+    if(s.user_text && s.user_text !== userText.textContent) {
+      userText.textContent = s.user_text
+      userMsg.classList.add('show')
+      addActivity(`YOU: ${s.user_text.slice(0,40)}...`)
+    }
+
+    if(s.response_text && s.response_text !== jupText.textContent) {
+      jupText.textContent = s.response_text
+      jupMsg.classList.add('show')
+      if(hideChat) clearTimeout(hideChat)
+      hideChat = setTimeout(()=>{
+        userMsg.classList.remove('show')
+        jupMsg.classList.remove('show')
+      }, 12000)
+    }
+
+    // Memory
+    if(s.memory_count !== undefined) {
+      document.getElementById('memCount').textContent = s.memory_count
+      document.getElementById('memVal').textContent = s.memory_count
+    }
+
+    // Awareness
+    const face = document.getElementById('pillFace')
+    const mood = document.getElementById('pillMood')
+    const attn = document.getElementById('pillAttention')
+    const gest = document.getElementById('pillGesture')
+    const scrn = document.getElementById('pillScreen')
+
+    if(s.face_present) face.classList.add('on')
+    else face.classList.remove('on')
+
+    if(s.mood) {
+      mood.textContent = s.mood.toUpperCase()
+      mood.className = `pill mood-${s.mood} on`
+    }
+
+    if(s.attention) {
+      attn.textContent = s.attention.toUpperCase()
+      if(s.attention==='focused') attn.classList.add('on')
+      else attn.classList.remove('on')
+    }
+
+    if(s.gesture) {
+      gest.textContent = s.gesture.replace('_',' ').toUpperCase()
+      gest.classList.add('on')
+      gestureFl.textContent = s.gesture.replace('_',' ').toUpperCase()
+      gestureFl.classList.add('show')
+      setTimeout(()=>gestureFl.classList.remove('show'), 2000)
+    } else {
+      gest.textContent = 'GESTURE'
+      gest.classList.remove('on')
+    }
+
+    if(s.screen_context) {
+      scrn.classList.add('on')
+      document.getElementById('screenVision').textContent = s.screen_context
+    }
+
+    // Last intent
+    if(s.last_intent) {
+      document.getElementById('lastIntent').textContent = s.last_intent
+    }
   }
 
   // Bridge
-  window.jupiterSetListening = () => setStatus('listening', 'LISTENING');
-  window.jupiterSetThinking = () => setStatus('thinking', 'PROCESSING');
-  window.jupiterSetSpeaking = () => setStatus('speaking', 'SPEAKING');
-  window.jupiterSetIdle = () => setStatus('', 'STANDING BY');
-  window.jupiterShowUser = (text) => showUser(text);
-  window.jupiterShowResponse = (text) => showResponse(text);
-  window.jupiterSetMemory = (count) => document.getElementById('memCount').textContent = count;
+  if(window.jupiterBridge) {
+    window.jupiterBridge.onStateUpdate(setState)
+  }
 
-  // Close button — signals Python
-  document.getElementById('closeBtn').addEventListener('click', () => {
-    window.location.href = 'jupiter://close';
-  });
+  // Poll fallback if no bridge
+  if(!window.jupiterBridge) {
+    setInterval(async()=>{
+      try {
+        const r = await fetch('http://localhost:5000/state')
+        const s = await r.json()
+        setState(s)
+      } catch(e) {}
+    }, 500)
+  }
 </script>
 </body>
 </html>
